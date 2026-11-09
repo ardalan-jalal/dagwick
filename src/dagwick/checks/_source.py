@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import functools
 import importlib
+import importlib.util
 import sys
 
 
@@ -73,18 +74,34 @@ def variable_get_lines(tree: ast.Module) -> list[int]:
     return sorted(set(visitor.lines))
 
 
+NEVER_IMPORT = ("airflow.providers.", "airflow.example_dags")
+
+
+def _import_package(name: str) -> bool:
+    parts = name.split(".")
+    for i in range(1, len(parts) + 1):
+        try:
+            spec = importlib.util.find_spec(".".join(parts[:i]))
+        except (ImportError, ValueError):
+            return False
+        if spec is None or spec.submodule_search_locations is None:
+            return False
+    importlib.import_module(name)
+    return True
+
+
 @functools.lru_cache(maxsize=256)
 def airflow_redirects(module: str) -> dict[str, str]:
-    if not module.startswith("airflow.") or module.startswith("airflow.providers."):
+    if not module.startswith("airflow.") or module.startswith(NEVER_IMPORT):
         return {}
     mod = sys.modules.get(module)
-    for target in (module.rpartition(".")[0], module):
-        if mod is not None:
-            break
-        try:
-            importlib.import_module(target)
-        except Exception:
-            continue
+    if mod is None:
+        for candidate in (module, module.rpartition(".")[0]):
+            try:
+                if _import_package(candidate):
+                    break
+            except Exception:
+                return {}
         mod = sys.modules.get(module)
     if mod is None:
         return {}

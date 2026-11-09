@@ -170,3 +170,62 @@ def test_new_checks_skip_without_context_so_scores_do_not_drop(shining):
 @pytest.mark.parametrize(("seconds", "text"), [(0.048, "0.05 s"), (0.4, "0.40 s"), (6.25, "6.2 s")])
 def test_parse_durations_read_naturally(seconds, text):
     assert duration(seconds) == text
+
+
+EXAMPLE_DAG = "airflow.example_dags.example_asset_decorator"
+
+
+def example_dag_modules():
+    import importlib.util
+    import pkgutil
+
+    spec = importlib.util.find_spec("airflow.example_dags")
+    return [
+        f"airflow.example_dags.{m.name}"
+        for m in pkgutil.iter_modules(spec.submodule_search_locations)
+        if not m.ispkg
+    ]
+
+
+@pytest.mark.parametrize("module", [EXAMPLE_DAG, f"{EXAMPLE_DAG}.inner"])
+def test_import_lines_naming_example_dags_import_nothing(shining, module):
+    import sys
+
+    airflow_redirects.cache_clear()
+    result = check(shining, "current_imports", source=f"from {module} import x\n")
+    assert result["status"] == "pass"
+    assert EXAMPLE_DAG not in sys.modules
+
+
+def test_only_packages_are_imported_even_without_the_example_dags_exclusion(monkeypatch):
+    import sys
+
+    from dagwick.checks import _source
+
+    monkeypatch.setattr(_source, "NEVER_IMPORT", ("airflow.providers.",))
+    airflow_redirects.cache_clear()
+    modules = example_dag_modules()
+    assert len(modules) > 10
+    for module in modules:
+        assert airflow_redirects(module) == {}
+        assert airflow_redirects(f"{module}.inner") == {}
+    assert [m for m in modules if m in sys.modules] == []
+    airflow_redirects.cache_clear()
+
+
+def test_plain_airflow_modules_named_in_imports_are_not_loaded():
+    import sys
+
+    module = "airflow.cli.commands.db_command"
+    if module in sys.modules:
+        pytest.skip("already loaded by another test")
+    airflow_redirects.cache_clear()
+    assert airflow_redirects(module) == {}
+    assert module not in sys.modules
+
+
+def test_package_level_shims_are_still_found(shining):
+    airflow_redirects.cache_clear()
+    result = check(shining, "current_imports", source="from airflow.decorators import task\n")
+    assert result["status"] == "warn"
+    assert "airflow.sdk" in result["items"][0]
