@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Fleet headline no longer contradicts the stats: it describes the average
+  grade and then states how many DAGs need care.
+- "need care" now counts grades C to F, so it and "healthy (A–B)" add up to
+  the number of DAGs.
+- Layout follows the width Dagwick actually has (container queries), so the
+  DAG tab inside Airflow's split panel gets the narrow layout.
+- Narrow screens: grade labels are no longer cut off, the lamp and score ring
+  sit side by side, and the fleet's "Most common issues" moves below the list.
+- Category cards no longer leave one card alone on the last row.
+- Every failing check opens with its fix by default.
+
 ## [0.1.0] - 2026-11-08
 
 ### Added

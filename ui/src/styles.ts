@@ -32,6 +32,8 @@ export const STYLES = `
   padding: 8px 4px 24px;
   width: 100%;
   max-width: 1440px;
+  box-sizing: border-box;
+  container: dagwick / inline-size;
 }
 html.dark .dagwick {
   --dagwick-bg: #171a21;
@@ -97,8 +99,8 @@ html.dark .dagwick {
 .dagwick-btn:disabled { opacity: .6; cursor: progress; }
 .dagwick-btn:focus-visible, .dagwick-tab:focus-visible { outline: 2px solid var(--dagwick-accent); outline-offset: 2px; }
 
-.dagwick-cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
-.dagwick-cat { padding: 12px 14px; border: 1px solid var(--dagwick-border); border-radius: 12px; background: var(--dagwick-bg); }
+.dagwick-cats { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.dagwick-cat { flex: 1 1 160px; padding: 12px 14px; border: 1px solid var(--dagwick-border); border-radius: 12px; background: var(--dagwick-bg); }
 .dagwick-cat-head { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
 .dagwick-bar { height: 6px; border-radius: 99px; background: var(--dagwick-border); overflow: hidden; }
 .dagwick-bar-fill { height: 100%; border-radius: 99px; transition: width .9s cubic-bezier(.2,.8,.2,1); }
@@ -191,7 +193,7 @@ html.dark .dagwick {
 }
 .dagwick-copy:hover { border-color: var(--dagwick-flame); }
 
-@media (max-width: 720px) {
+@container dagwick (max-width: 720px) {
   .dagwick-goal-picks { margin-left: 0; }
 }
 
@@ -292,12 +294,14 @@ html.dark .dagwick {
 .dagwick-common-head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin-bottom: 6px; }
 .dagwick-common-head .dagwick-muted { font-variant-numeric: tabular-nums; }
 
-@media (max-width: 1100px) {
+@container dagwick (max-width: 1100px) {
   .dagwick-fleet-grid { grid-template-columns: 1fr; }
   .dagwick-side { position: static; order: -1; }
 }
-@media (max-width: 720px) {
+@container dagwick (max-width: 720px) {
   .dagwick-grades { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dagwick-gcard { grid-template-columns: 1fr; justify-items: start; }
+  .dagwick-side { order: 0; }
   .dagwick-row { grid-template-columns: auto minmax(0, 1fr) auto; }
   .dagwick-row-go { display: none; }
 }
@@ -323,8 +327,9 @@ html.dark .dagwick {
 @keyframes dagwick-smoke { 0% { stroke-dashoffset: 80; opacity: 0; } 30% { opacity: .9; } 100% { stroke-dashoffset: -80; opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .dagwick *, .dagwick-lamp * { animation: none !important; transition: none !important; } }
 
-@media (max-width: 720px) {
-  .dagwick-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-  .dagwick-chips { justify-content: center; }
+@container dagwick (max-width: 720px) {
+  .dagwick-hero { grid-template-columns: auto auto; justify-content: center; justify-items: center; text-align: center; gap: 16px 32px; }
+  .dagwick-hero-text { grid-column: 1 / -1; order: 1; }
+  .dagwick-chips, .dagwick-stats { justify-content: center; }
 }
 `;

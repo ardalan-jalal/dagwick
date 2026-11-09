@@ -9,10 +9,10 @@ const GRADES: Grade[] = ["A", "B", "C", "D", "F"];
 const GRADE_LABEL: Record<Grade, string> = { A: "Shining", B: "Steady", C: "Dim", D: "Flickering", F: "Out" };
 const HEADLINE: Record<Grade, string> = {
   A: "The whole fleet is shining.",
-  B: "Most DAGs burn steady.",
-  C: "The fleet glows dimly. A few DAGs need care.",
-  D: "Many DAGs are flickering.",
-  F: "Most of the fleet is in the dark.",
+  B: "The fleet burns steady.",
+  C: "The fleet glows dimly.",
+  D: "The fleet is flickering.",
+  F: "The fleet has gone dark.",
 };
 const SORTS = [
   { id: "worst", label: "Needs care" },
@@ -59,8 +59,8 @@ function Fleet({ dags, truncated }: { dags: FleetDag[]; truncated: boolean }) {
     () => Object.fromEntries(GRADES.map((g) => [g, dags.filter((d) => d.grade === g).length])) as Record<Grade, number>,
     [dags],
   );
-  const needsCare = dags.filter((d) => d.counts.fail > 0).length;
   const healthy = dist.A + dist.B;
+  const needsCare = dags.length - healthy;
 
   const common = useMemo(() => {
     const by = new Map<string, { id: string; title: string; dags: number; fails: number }>();
@@ -97,11 +97,16 @@ function Fleet({ dags, truncated }: { dags: FleetDag[]; truncated: boolean }) {
         <div className="dagwick-hero-text">
           {brandEyebrow("Fleet health")}
           <h2 className="dagwick-dag">All DAGs</h2>
-          <p className="dagwick-headline">{HEADLINE[avgGrade]}</p>
+          <p className="dagwick-headline">
+            {HEADLINE[avgGrade]}{" "}
+            {needsCare === 0
+              ? "Every DAG is healthy."
+              : `${needsCare} of ${dags.length} ${dags.length === 1 ? "DAG needs" : "DAGs need"} care.`}
+          </p>
           <div className="dagwick-stats">
             <Stat value={dags.length} label="DAGs" />
             <Stat value={(Math.floor(avg * 10) / 10).toFixed(1)} label="average score" />
-            <Stat value={needsCare} label="need care" tone={needsCare ? "fail" : undefined} />
+            <Stat value={needsCare} label="need care (C–F)" tone={needsCare ? "fail" : undefined} />
             <Stat value={healthy} label="healthy (A–B)" tone={healthy ? "pass" : undefined} />
           </div>
         </div>

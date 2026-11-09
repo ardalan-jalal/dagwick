@@ -70,9 +70,11 @@ function nextGoal(report: ScoreReport) {
 function Report({ report }: { report: ScoreReport }) {
   const attention = report.counts.fail + report.counts.warn;
   const [filter, setFilter] = useState<Filter>(attention ? "attention" : "all");
-  const [openIds, setOpenIds] = useState<Set<string>>(
-    () => new Set(report.checks.filter((c) => c.fix).sort(byPriority).slice(0, 2).map((c) => c.id)),
-  );
+  const [openIds, setOpenIds] = useState<Set<string>>(() => {
+    const actionable = report.checks.filter((c) => c.fix).sort(byPriority);
+    const failing = actionable.filter((c) => c.status === "fail");
+    return new Set((failing.length ? failing : actionable.slice(0, 2)).map((c) => c.id));
+  });
   const toggle = (id: string) =>
     setOpenIds((prev) => {
       const next = new Set(prev);
