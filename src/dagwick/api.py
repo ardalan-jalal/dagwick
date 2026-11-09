@@ -12,6 +12,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 
 from dagwick import __version__
+from dagwick.checks.performance import parse_status
 from dagwick.core import Context, registered_checks, score_dag
 
 log = logging.getLogger(__name__)
@@ -75,7 +76,53 @@ def _dags_per_file(filelocs: list[str] | None = None) -> dict[str, int]:
         return dict(session.execute(query.group_by(DagModel.fileloc)).all())
 
 
-def _score_by_id(dag_id: str, dags_in_file: int | None = None) -> dict[str, Any] | None:
+FileFacts = tuple[str | None, float | None]
+
+
+def _file_facts(dag_ids: list[str]) -> dict[str, FileFacts]:
+    from airflow.models.dag import DagModel
+    from airflow.models.dagcode import DagCode
+    from airflow.utils.session import create_session
+    from sqlalchemy import select
+
+    facts: dict[str, FileFacts] = {}
+    try:
+        with create_session() as session:
+            parse_seconds = dict(
+                session.execute(
+                    select(DagModel.dag_id, DagModel.last_parse_duration).where(
+                        DagModel.dag_id.in_(dag_ids)
+                    )
+                ).all()
+            )
+            hashes: dict[str, str] = {}
+            for dag_id, code_hash in session.execute(
+                select(DagCode.dag_id, DagCode.source_code_hash)
+                .where(DagCode.dag_id.in_(dag_ids))
+                .order_by(DagCode.last_updated)
+            ).all():
+                hashes[dag_id] = code_hash
+    except Exception:
+        log.exception("dagwick: could not read source hashes and parse times")
+        return {}
+    for dag_id in dag_ids:
+        facts[dag_id] = (hashes.get(dag_id), parse_seconds.get(dag_id))
+    return facts
+
+
+def _source(dag_id: str) -> str | None:
+    from airflow.models.dagcode import DagCode
+
+    try:
+        return DagCode.code(dag_id)
+    except Exception:
+        log.exception("dagwick: could not read the source of DAG %s", dag_id)
+        return None
+
+
+def _score_by_id(
+    dag_id: str, dags_in_file: int | None = None, facts: FileFacts | None = None
+) -> dict[str, Any] | None:
     from airflow.models.serialized_dag import SerializedDagModel
 
     sdm = SerializedDagModel.get(dag_id)
@@ -84,11 +131,20 @@ def _score_by_id(dag_id: str, dags_in_file: int | None = None) -> dict[str, Any]
     dag = sdm.dag
     if dags_in_file is None and getattr(dag, "fileloc", None):
         dags_in_file = _dags_per_file([dag.fileloc]).get(dag.fileloc)
-    key = f"{sdm.dag_hash}:{dags_in_file}"  # re-score if the code or its file's DAG count changes
+    if facts is None:
+        facts = _file_facts([dag_id]).get(dag_id, (None, None))
+    source_hash, parse_seconds = facts
+    parse_band = parse_status(parse_seconds).value
+    key = f"{sdm.dag_hash}:{dags_in_file}:{source_hash}:{parse_band}"
     cached = _cache.get(dag_id, key)
     if cached is not None:
         return cached
-    report = score_dag(dag, Context(dags_in_file=dags_in_file))
+    context = Context(
+        dags_in_file=dags_in_file,
+        source=_source(dag_id) if source_hash else None,
+        parse_seconds=parse_seconds,
+    )
+    report = score_dag(dag, context)
     _cache.put(dag_id, key, report)
     return report
 
@@ -170,9 +226,10 @@ def fleet(user: Annotated[Any, _user()]) -> dict[str, Any]:
                 .limit(FLEET_LIMIT)
             ).all()
         per_file = _dags_per_file()
+        facts = _file_facts([row[0] for row in rows])
         dags = []
         for dag_id, is_paused, owners, fileloc in rows:
-            report = _score_by_id(dag_id, per_file.get(fileloc))
+            report = _score_by_id(dag_id, per_file.get(fileloc), facts.get(dag_id, (None, None)))
             if report is not None:
                 dags.append(fleet_entry(dag_id, is_paused, owners, report))
     except Exception as exc:

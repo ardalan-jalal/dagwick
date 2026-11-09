@@ -34,6 +34,7 @@ class Category(str, Enum):
     OBSERVABILITY = "observability"
     OWNERSHIP = "ownership"
     STRUCTURE = "structure"
+    PERFORMANCE = "performance"
 
 
 STATUS_CREDIT = {Status.PASS: 1.0, Status.WARN: 0.5, Status.FAIL: 0.0}
@@ -60,6 +61,8 @@ class Context:
     """
 
     dags_in_file: int | None = None
+    source: str | None = field(default=None, repr=False)
+    parse_seconds: float | None = None
 
 
 @dataclass(frozen=True)

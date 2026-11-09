@@ -23,6 +23,13 @@ All notable changes to this project are documented here. The format follows
   define several DAGs (DAG factories) are skipped.
 - Checks can take an optional second parameter, `context`, with facts that
   are not on the DAG itself (for example how many DAGs share its file).
+- New checks that read the DAG file's source as Airflow stored it, without
+  running it: **No `Variable.get` at parse time** and **Uses current Airflow
+  imports** (paths Airflow itself marks as deprecated, with the new location).
+- New check, **Fast to parse**: warns from 5 s and fails from 20 s, using the
+  parse time Airflow records for each file.
+- New category, **Performance**.
+- `Context` gains `source` and `parse_seconds`.
 
 ## [0.1.0] - 2026-11-08
 

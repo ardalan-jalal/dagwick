@@ -13,6 +13,7 @@ export const CATEGORY_LABEL: Record<string, string> = {
   scheduling: "Scheduling",
   ownership: "Ownership",
   structure: "Structure",
+  performance: "Performance",
 };
 const STATUS_ORDER: Record<Status, number> = { fail: 0, warn: 1, pass: 2, skip: 3 };
 const HEADLINE: Record<Grade, string> = {

@@ -4,6 +4,7 @@ import re
 from pathlib import PurePath
 from typing import Any
 
+from dagwick.checks._source import deprecated_imports, parse
 from dagwick.core import Category, Context, Finding, Status, check
 
 SNAKE = re.compile(r"^[a-z0-9_]+(\.[a-z0-9_]+)*$")  # dots come from task groups
@@ -61,3 +62,32 @@ def file_name(dag: Any, context: Context) -> Finding:
     if path.stem == dag.dag_id:
         return Finding(Status.PASS, f"Defined in {path.name}.")
     return Finding(Status.WARN, f"Defined in {path.name}; expected {dag.dag_id}.py.", (path.name,))
+
+
+@check(
+    id="current_imports",
+    title="Uses current Airflow imports",
+    category=Category.STRUCTURE,
+    weight=3,
+    example=(
+        "from airflow.providers.standard.operators.bash import BashOperator\n"
+        "# not: from airflow.operators.bash import BashOperator"
+    ),
+    fix=(
+        "Import from the new location Airflow points to. The old paths only work through "
+        "deprecation shims that a future Airflow release removes."
+    ),
+)
+def current_imports(dag: Any, context: Context) -> Finding:
+    tree = parse(context.source) if context.source else None
+    if tree is None:
+        return Finding(Status.SKIP, "The DAG's source code is not available.")
+    found = deprecated_imports(tree)
+    if not found:
+        return Finding(Status.PASS, "No deprecated Airflow import paths.")
+    noun = "import uses a path" if len(found) == 1 else "imports use paths"
+    return Finding(
+        Status.WARN,
+        f"{len(found)} {noun} Airflow has deprecated.",
+        tuple(f"line {line}: {old} → {new}" for line, old, new in found),
+    )
