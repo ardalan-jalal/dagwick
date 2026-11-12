@@ -9,11 +9,22 @@ A PyPI version can never be uploaded twice, so each release needs a new number.
 
 ## One-time setup
 
-Already done for this repository. Only needed again if the repo or workflow
-moves.
+Needed again if the repo or workflow moves.
 
-1. On <https://pypi.org/manage/account/publishing/>, add a GitHub trusted
-   publisher (a *pending* one if the project does not exist yet):
+1. In the repository's **Settings → Environments**, create an environment
+   named `pypi`:
+   - **Required reviewers:** at least one maintainer other than the person who
+     usually releases, and tick **Prevent self-review**.
+   - **Deployment branches and tags:** *Selected branches and tags*, with the
+     tag rule `v*.*.*`.
+
+   The release job runs in this environment, so it waits for that approval
+   before anything is uploaded.
+
+2. On <https://pypi.org/manage/project/dagwick/settings/publishing/>, add a
+   GitHub trusted publisher (a *pending* one on
+   <https://pypi.org/manage/account/publishing/> if the project does not exist
+   yet):
 
    | Field | Value |
    | --- | --- |
@@ -21,9 +32,12 @@ moves.
    | Owner | `ardalan-jalal` |
    | Repository name | `dagwick` |
    | Workflow name | `release.yml` |
-   | Environment name | *(leave empty)* |
+   | Environment name | `pypi` |
 
-2. Publishers cannot be edited. If a field is wrong, remove it and add it again.
+3. Publishers cannot be edited. If a field is wrong, remove it and add it
+   again. Remove any older publisher with an empty environment: PyPI accepts
+   an upload that matches *any* publisher, so the old one would still let the
+   workflow publish without the `pypi` environment's approval.
 
 ## Release steps
 
@@ -133,7 +147,9 @@ on the file's page under **Provenance**.
 
 | Problem | Fix |
 | --- | --- |
-| `invalid-publisher` | The PyPI trusted publisher does not match. Compare it with the table above (the environment must be empty), remove it and add it again, then re-run the failed job. |
+| `invalid-publisher` | The PyPI trusted publisher does not match. Compare it with the table above (the environment must be `pypi`), remove it and add it again, then re-run the failed job. |
+| `... is not on main. Release only from main.` | The tag points at a commit that was never merged into `main`. Delete the release and tag, merge the release pull request, and tag `main`. |
+| The job waits on "Review deployments" | The `pypi` environment needs a maintainer's approval. Another maintainer approves it under the run's **Review deployments** button. |
 | `Tag vX does not match version Y` | The tag and `__version__` differ. Delete the release and tag, fix the version, and tag again. |
 | CI fails on "UI bundle matches its source" | You changed `ui/src/` or the version without rebuilding. Run step 2 and commit the bundle. |
 | `CHANGELOG.md section X is not dated yet` | Date the section (step 3), commit, and move the tag (see below). |

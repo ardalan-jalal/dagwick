@@ -126,3 +126,42 @@ def test_example_pack_declares_its_entry_point():
     assert data["project"]["entry-points"]["dagwick.checks"] == {
         "example": "dagwick_pack_example.checks"
     }
+
+
+def test_a_request_during_pack_loading_waits_for_every_pack(packs):
+    # A second thread must not see "loaded" while a pack is still importing:
+    # it would score with only the built-ins and cache that score.
+    import threading
+
+    importing, release = threading.Event(), threading.Event()
+
+    def slow_pack():
+        importing.set()
+        assert release.wait(5)
+        _register()
+
+    packs.append(FakeEntryPoint("acme", slow_pack))
+    first = threading.Thread(target=core.load_plugin_checks)
+    first.start()
+    assert importing.wait(5)
+    seen: list[list[str]] = []
+    second = threading.Thread(
+        target=lambda: seen.append(core.load_plugin_checks() or list(core._REGISTRY))
+    )
+    second.start()
+    second.join(0.2)
+    assert second.is_alive()  # waiting for the first thread, not returning early
+    release.set()
+    first.join(5)
+    second.join(5)
+    assert seen == [["team_rule"]]
+
+
+def test_a_pack_that_scores_while_it_imports_does_not_deadlock(packs):
+    def reentrant():
+        core.load_plugin_checks()  # same thread: returns at once
+        _register()
+
+    packs.append(FakeEntryPoint("acme", reentrant))
+    core.load_plugin_checks()
+    assert list(core._REGISTRY) == ["team_rule"]

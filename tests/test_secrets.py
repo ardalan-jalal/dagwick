@@ -203,3 +203,19 @@ def test_a_dict_key_that_is_not_a_plain_name_is_not_echoed():
     )
     assert (2, "value assigned to a secret-named key") in found
     assert "hunter2" not in str(found)
+
+
+def test_a_connection_uri_after_an_underscore_is_found():
+    uri = "my_postgresql://loader:" + FAKE + "@db.internal/warehouse"
+    assert secrets(f'URI = "{uri}"\n') == [(1, "password in a connection URI")]
+
+
+@pytest.mark.parametrize("text", ["a." * 50_000, "a" * 100_000 + "://", "a://" + "b:" * 50_000])
+def test_crafted_strings_cannot_stall_the_uri_scan(text):
+    # The old pattern took seconds (quadratic time) on "a.a.a..." and similar strings,
+    # which a DAG author could commit to stall the api-server's scoring.
+    import time
+
+    start = time.perf_counter()
+    secrets(f'X = "{text}"\n')
+    assert time.perf_counter() - start < 1.0

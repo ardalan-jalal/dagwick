@@ -10,6 +10,12 @@ jobs:
   pypi:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # PyPI trusts only this environment (see RELEASING.md). Its protection rules
+    # (required reviewers, tags vX.Y.Z only) mean one write-access account cannot
+    # publish an arbitrary commit on its own.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/dagwick/
     # Job permissions replace the defaults, so checkout needs contents: read again.
     permissions:
       contents: read
@@ -19,6 +25,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0 # the next step needs main's history
+      - name: The release commit is on main
+        # main only takes reviewed pull requests, so this ties the upload to reviewed code.
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" FETCH_HEAD || {
+            echo "$GITHUB_REF_NAME ($GITHUB_SHA) is not on main. Release only from main."
+            exit 1
+          }
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: The release tag matches the package version
         run: |

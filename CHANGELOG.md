@@ -51,6 +51,22 @@ All notable changes to this project are documented here. The format follows
   - **`scripts/fleet_review.py`** no longer resends the token when the server
     redirects, and refuses to send it over plain `http://` except to this
     machine.
+- **Fixes for the rest of that audit:**
+  - **Secret scan:** the connection-URI pattern took quadratic time on long
+    strings like `a.a.a.…`, so a DAG file could stall the api-server while it
+    scored. The pattern now has a fixed start and length caps. It also finds
+    URIs whose scheme follows an underscore, such as `my_postgresql://`.
+  - **The fleet page** now builds each DAG's cache key from its hash, read
+    without its data, and loads and deserializes a DAG only when its score is
+    not cached. Before, every request loaded up to 2,000 DAGs even with a
+    warm cache.
+  - **Check packs** load under a lock. A request that arrived while packs were
+    importing could score with only part of the checks and cache that score.
+  - **Releases** run in a protected `pypi` GitHub environment and refuse a tag
+    whose commit is not on `main`. **Maintainers:** before the next release,
+    create the environment and re-add the PyPI trusted publisher with
+    environment `pypi` (see `RELEASING.md`), or the upload fails with
+    `invalid-publisher`.
 
 ## [0.3.0] - 2026-11-10
 

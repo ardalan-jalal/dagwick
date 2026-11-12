@@ -48,7 +48,13 @@ PATTERNS = (
     ("Google API key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),
 )
 
-URI_PASSWORD = re.compile(r"\b[a-z][a-z0-9+.-]*://[^/\s:@]+:([^@\s/]+)@", re.IGNORECASE)
+# A scheme starts only where no scheme character comes before it, and every part
+# has a length cap. Without these, a long run like "a.a.a." makes the regex
+# engine retry from every position (quadratic time) and stalls the api-server.
+URI_PASSWORD = re.compile(
+    r"(?<![a-z0-9+.-])[a-z][a-z0-9+.-]{0,31}://[^/\s:@]{1,256}:([^@\s/]{1,256})@",
+    re.IGNORECASE,
+)
 IDENTIFIER_LIKE = re.compile(r"[a-z_]+")
 CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 

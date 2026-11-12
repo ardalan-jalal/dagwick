@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import threading
 from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, field
 from enum import Enum
@@ -114,6 +115,7 @@ class CheckResult:
 
 _REGISTRY: dict[str, CheckSpec] = {}
 _plugins_loaded = False
+_plugins_lock = threading.RLock()  # one thread imports the packs; the others wait
 _loading_pack: str | None = None  # set while an entry point is being imported
 
 
@@ -180,16 +182,23 @@ def load_plugin_checks() -> None:
     global _plugins_loaded, _loading_pack
     if _plugins_loaded:
         return
-    _plugins_loaded = True
-    for ep in entry_points(group=ENTRY_POINT_GROUP):
-        dist = getattr(ep, "dist", None)
-        _loading_pack = getattr(dist, "name", None) or ep.name
+    # Without the lock, a second request arriving while the packs import would see
+    # "loaded", score with only part of the checks, and cache that score.
+    with _plugins_lock:
+        if _plugins_loaded or _loading_pack is not None:
+            return  # loaded meanwhile, or a pack's import called back into us
         try:
-            ep.load()
-        except Exception:
-            log.exception("Failed to load dagwick checks from entry point %s", ep.name)
+            for ep in entry_points(group=ENTRY_POINT_GROUP):
+                dist = getattr(ep, "dist", None)
+                _loading_pack = getattr(dist, "name", None) or ep.name
+                try:
+                    ep.load()
+                except Exception:
+                    log.exception("Failed to load dagwick checks from entry point %s", ep.name)
+                finally:
+                    _loading_pack = None
         finally:
-            _loading_pack = None
+            _plugins_loaded = True
 
 
 def registered_checks() -> list[CheckSpec]:

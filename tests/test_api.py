@@ -160,6 +160,62 @@ def test_score_by_id_uses_cache(monkeypatch, shining):
     assert api._score_by_id("gone") is None
 
 
+def test_score_by_id_serves_a_cached_score_without_loading_the_dag(monkeypatch, shining):
+    # The fleet page scores up to FLEET_LIMIT DAGs per request. With a warm cache it
+    # must not load and deserialize each DAG again.
+    from types import SimpleNamespace
+
+    from airflow.models import serialized_dag
+
+    from dagwick import api
+
+    loads = []
+    fake = SimpleNamespace(dag_hash="h1", dag=shining, data=None)
+    monkeypatch.setattr(
+        serialized_dag.SerializedDagModel, "get", lambda dag_id: loads.append(1) or fake
+    )
+    monkeypatch.setattr(api, "_cache", api._ScoreCache())
+    monkeypatch.setattr(api, "_latest_dag_hash", lambda dag_id: fake.dag_hash)
+    first = api._score_by_id("demo", 1, (None, None))
+    second = api._score_by_id("demo", 1, (None, None))
+    assert first is second and loads == [1]
+
+    fake.dag_hash = "h2"  # a new version is parsed: load and score it once
+    third = api._score_by_id("demo", 1, (None, None))
+    assert third is not first and loads == [1, 1]
+
+
+def test_score_by_id_scores_the_version_it_loaded_when_one_lands_mid_request(monkeypatch, shining):
+    from types import SimpleNamespace
+
+    from airflow.models import serialized_dag
+
+    from dagwick import api
+
+    fake = SimpleNamespace(dag_hash="h1", dag=shining, data=None)
+    monkeypatch.setattr(serialized_dag.SerializedDagModel, "get", lambda dag_id: fake)
+    monkeypatch.setattr(api, "_cache", api._ScoreCache())
+    hashes = iter(["h1", "h1"])
+    monkeypatch.setattr(api, "_latest_dag_hash", lambda dag_id: next(hashes))
+    api._score_by_id("demo", 1, (None, None))  # remembers the sensors of h1
+    fake.dag_hash = "h2"  # lands after the hash read, before the load
+    api._score_by_id("demo", 2, (None, None))  # a cache miss, so the DAG is loaded
+    keys = [k for k, _ in api._cache._data.values()]
+    assert keys and keys[0].startswith("h2:2:")
+
+
+def test_latest_dag_hash_is_none_when_the_database_fails(monkeypatch):
+    from airflow.utils import session as airflow_session
+
+    from dagwick import api
+
+    def boom():
+        raise RuntimeError("database is down")
+
+    monkeypatch.setattr(airflow_session, "create_session", boom)
+    assert api._latest_dag_hash("demo") is None
+
+
 def test_score_by_id_rescores_when_the_files_dag_count_changes(monkeypatch, shining):
     from types import SimpleNamespace
 
