@@ -29,7 +29,7 @@ Needed again if the repo or workflow moves.
    | Field | Value |
    | --- | --- |
    | PyPI Project Name | `dagwick` |
-   | Owner | `ardalan-jalal` |
+   | Owner | `dagwick` |
    | Repository name | `dagwick` |
    | Workflow name | `release.yml` |
    | Environment name | `pypi` |
@@ -112,6 +112,11 @@ must be dated. The workflow stops if either is wrong.
 
 The release workflow signs what it builds in two ways (from 0.3.0):
 
+> Releases up to 0.3.x were signed while the repository was
+> `ardalan-jalal/dagwick`, so their attestations and Sigstore identity name
+> that path, as in the 0.3.0 commands below. Releases after the move to the
+> `dagwick` organization use `dagwick/dagwick` instead.
+
 - A **build provenance attestation** for the wheel and sdist, stored by GitHub.
   It works for the files on PyPI too, because they are the same files:
 
@@ -125,7 +130,7 @@ The release workflow signs what it builds in two ways (from 0.3.0):
   offline:
 
   ```bash
-  gh attestation verify dagwick-release/*.whl -R ardalan-jalal/dagwick \
+  gh attestation verify dagwick-release/*.whl -R dagwick/dagwick \
     --bundle dagwick-release/dagwick-*.intoto.jsonl
   ```
 
@@ -133,7 +138,7 @@ The release workflow signs what it builds in two ways (from 0.3.0):
   to the wheel and sdist:
 
   ```bash
-  gh release download v0.3.0 -R ardalan-jalal/dagwick -D dagwick-release
+  gh release download v0.3.0 -R dagwick/dagwick -D dagwick-release
   uvx sigstore verify identity \
     --cert-identity "https://github.com/ardalan-jalal/dagwick/.github/workflows/release.yml@refs/tags/v0.3.0" \
     --cert-oidc-issuer https://token.actions.githubusercontent.com \

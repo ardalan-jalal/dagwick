@@ -1,6 +1,6 @@
 # Example Dagwick check pack
 
-A check pack adds your own rules to [Dagwick](https://github.com/ardalan-jalal/dagwick)
+A check pack adds your own rules to [Dagwick](https://github.com/dagwick/dagwick)
 without changing Dagwick. This one has a single check, **Has a team tag**.
 It is an example and is not published: copy this folder to start your own pack.
 

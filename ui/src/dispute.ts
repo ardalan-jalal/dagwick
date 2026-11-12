@@ -1,6 +1,6 @@
 import type { CheckResult } from "./types";
 
-export const ISSUES_URL = "https://github.com/ardalan-jalal/dagwick/issues/new";
+export const ISSUES_URL = "https://github.com/dagwick/dagwick/issues/new";
 
 /**
  * Link to open a dispute about a built-in check on GitHub.

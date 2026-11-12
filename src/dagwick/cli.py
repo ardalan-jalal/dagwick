@@ -18,7 +18,7 @@ ICON = {"fail": "x", "warn": "!"}
 
 OK, BELOW_GRADE, LOAD_ERROR = 0, 1, 2
 
-DISPUTE_URL = "https://github.com/ardalan-jalal/dagwick/issues/new?template=dispute.yml"
+DISPUTE_URL = "https://github.com/dagwick/dagwick/issues/new?template=dispute.yml"
 DISPUTE_HINT = f"Disagree with a check or hit a false positive? Tell us: {DISPUTE_URL}"
 
 

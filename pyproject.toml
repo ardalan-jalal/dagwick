@@ -32,10 +32,10 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/ardalan-jalal/dagwick"
-Repository = "https://github.com/ardalan-jalal/dagwick"
-Issues = "https://github.com/ardalan-jalal/dagwick/issues"
-Changelog = "https://github.com/ardalan-jalal/dagwick/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/dagwick/dagwick"
+Repository = "https://github.com/dagwick/dagwick"
+Issues = "https://github.com/dagwick/dagwick/issues"
+Changelog = "https://github.com/dagwick/dagwick/blob/main/CHANGELOG.md"
 
 [project.scripts]
 dagwick = "dagwick.cli:main"

@@ -1,7 +1,7 @@
 # Roadmap
 
 Where Dagwick is heading. Priorities can change; ideas and feedback are welcome
-in [issues](https://github.com/ardalan-jalal/dagwick/issues).
+in [issues](https://github.com/dagwick/dagwick/issues).
 
 ## 1. Prove it on real DAGs (0.1.x)
 

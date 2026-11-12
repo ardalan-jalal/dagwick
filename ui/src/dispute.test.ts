@@ -4,7 +4,7 @@ import { canDispute, disputeUrl } from "./dispute";
 describe("disputeUrl", () => {
   it("pre-fills the template, title and rule with the check id only", () => {
     const url = new URL(disputeUrl("catchup"));
-    expect(url.origin + url.pathname).toBe("https://github.com/ardalan-jalal/dagwick/issues/new");
+    expect(url.origin + url.pathname).toBe("https://github.com/dagwick/dagwick/issues/new");
     expect(url.searchParams.get("template")).toBe("dispute.yml");
     expect(url.searchParams.get("title")).toBe("[Dispute] Rule: catchup");
     expect(url.searchParams.get("rule")).toBe("catchup");
