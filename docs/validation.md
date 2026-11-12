@@ -53,7 +53,7 @@ Go through it with the owner (about 30 minutes each). For each row, fill in
 | Verdict | Meaning | What to do |
 | --- | --- | --- |
 | useful | Right, and worth fixing. | Nothing for Dagwick. |
-| false alarm | The check is wrong about this DAG. | Open a [false alarm issue](https://github.com/ardalan-jalal/dagwick/issues/new?template=false_alarm.yml). |
+| false alarm | The check is wrong about this DAG. | Open a [dispute](https://github.com/ardalan-jalal/dagwick/issues/new?template=dispute.yml) and pick "False alarm". |
 | noise | Right, but the owner broke the rule on purpose, or it doesn't matter here. | If the check can be acknowledged, suggest `# dagwick: ack <check> -- <reason>`. If it can't, or this happens on many DAGs, note it for a weight change. |
 
 Questions to ask each owner:
