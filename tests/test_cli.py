@@ -137,3 +137,30 @@ def test_check_command_uses_the_dagwick_settings(monkeypatch):
     monkeypatch.setenv("AIRFLOW__DAGWICK__GRADES", "A:100.1")  # invalid: defaults apply
     code, _ = run("check", path, "--min-grade", "A")
     assert code == OK
+
+
+def test_dispute_hint_goes_to_stderr_only_when_a_check_is_flagged():
+    out, err = io.StringIO(), io.StringIO()
+    main(["check", str(DAGS)], out=out, err=err)
+    assert "issues/new?template=dispute.yml" in err.getvalue()
+    assert "dispute" not in out.getvalue()
+
+    out, err = io.StringIO(), io.StringIO()
+    main(["check", str(DAGS / "demo_shining_pipeline.py")], out=out, err=err)
+    assert err.getvalue() == ""
+
+
+def test_dispute_hint_stays_out_of_json_output():
+    out, err = io.StringIO(), io.StringIO()
+    main(["check", str(DAGS), "--json"], out=out, err=err)
+    json.loads(out.getvalue())
+    assert err.getvalue() == ""
+
+
+def test_check_packs_do_not_trigger_the_dispute_hint():
+    from dagwick.cli import flagged
+
+    pack = {"checks": [{"status": "fail", "pack": "acme-checks"}]}
+    builtin = {"checks": [{"status": "warn", "pack": "dagwick"}]}
+    assert not flagged([pack])
+    assert flagged([pack, builtin])

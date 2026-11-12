@@ -122,3 +122,38 @@ def test_main_time_saves_json(tmp_path, monkeypatch, capsys):
     assert fleet_review.main(["time", "https://a.example", "--runs", "1", "--save", str(out)]) == 0
     assert json.loads(out.read_text()) == FLEET
     assert "secret-token" not in capsys.readouterr().out
+
+
+def _capture_urlopen(monkeypatch):
+    seen = {}
+
+    class _Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    def urlopen(request, timeout):
+        seen["request"] = request
+        return _Response(b"{}")
+
+    monkeypatch.setattr(fleet_review.urllib.request, "urlopen", urlopen)
+    return seen
+
+
+def test_fetch_never_resends_the_token_after_a_redirect(monkeypatch):
+    seen = _capture_urlopen(monkeypatch)
+    fleet_review._fetch("https://airflow.example.com/x", {"Authorization": "Bearer t"})
+    request = seen["request"]
+    # Unredirected headers are dropped by urllib when it follows a redirect.
+    assert request.unredirected_hdrs == {"Authorization": "Bearer t"}
+    assert "Authorization" not in request.headers
+
+
+def test_fetch_refuses_to_send_a_token_over_plain_http_except_to_this_machine(monkeypatch):
+    _capture_urlopen(monkeypatch)
+    with pytest.raises(ValueError, match="https"):
+        fleet_review._fetch("http://airflow.example.com/x", {"Authorization": "Bearer t"})
+    fleet_review._fetch("http://localhost:8080/x", {"Authorization": "Bearer t"})  # sandbox
+    fleet_review._fetch("http://airflow.example.com/x", {})  # no token: fine

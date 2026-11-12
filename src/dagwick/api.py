@@ -22,11 +22,33 @@ STATIC_DIR = Path(__file__).parent / "static"
 FLEET_LIMIT = 2000
 
 
-def _require_dag_read() -> Any:
-    """Reuse Airflow's own DAG permission check (same rules as the REST API)."""
+# What each endpoint reads, as Airflow's DAG sub-permissions (DagAccessEntity names).
+# Core Airflow asks for the same ones before it shows this data: CODE for DAG source,
+# VERSION for DAG versions, RUN and TASK_INSTANCE for runs and their task instances.
+NEEDS = {
+    "score": ("CODE", "TASK_INSTANCE"),  # checks read the source; sensor checks read TIs
+    "history": ("CODE", "VERSION"),  # scores each stored version from its source
+    "health": ("RUN", "TASK_INSTANCE"),
+    "fleet": ("CODE", "RUN", "TASK_INSTANCE"),  # scores and run health for every DAG
+}
+
+
+def _require_dag_read(*entities: str, dag: bool = True) -> list[Any]:
+    """Reuse Airflow's own DAG permission checks (same rules as the REST API).
+
+    ``dag`` asks for read access to the DAG itself; each name in ``entities`` adds the
+    DAG sub-permission core Airflow requires for that data (for example "DAG Code" with
+    the FAB auth manager). A name this Airflow version doesn't know is skipped.
+    """
+    from airflow.api_fastapi.auth.managers.models.resource_details import DagAccessEntity
     from airflow.api_fastapi.core_api.security import requires_access_dag
 
-    return Depends(requires_access_dag(method="GET"))
+    checks = [requires_access_dag(method="GET")] if dag else []
+    for name in entities:
+        entity = DagAccessEntity.__members__.get(name)
+        if entity is not None:
+            checks.append(requires_access_dag(method="GET", access_entity=entity))
+    return [Depends(check) for check in checks]
 
 
 def _require_login() -> Any:
@@ -259,7 +281,7 @@ def static(name: str) -> FileResponse:
     return FileResponse(path, media_type=media_type, headers={"Cache-Control": "no-cache"})
 
 
-@app.get("/api/health", dependencies=[_require_dag_read()])
+@app.get("/api/health", dependencies=_require_dag_read(*NEEDS["health"]))
 def health(dag_id: str = Query(..., min_length=1, max_length=250)) -> dict[str, Any]:
     from dagwick.health import dag_health
 
@@ -302,7 +324,7 @@ def _fleet_health(dag_ids: list[str]) -> dict[str, dict[str, Any]]:
         return {}
 
 
-@app.get("/api/history", dependencies=[_require_dag_read()])
+@app.get("/api/history", dependencies=_require_dag_read(*NEEDS["history"]))
 def history(dag_id: str = Query(..., min_length=1, max_length=250)) -> dict[str, Any]:
     from dagwick.history import dag_history
 
@@ -316,7 +338,7 @@ def history(dag_id: str = Query(..., min_length=1, max_length=250)) -> dict[str,
     return result
 
 
-@app.get("/api/score", dependencies=[_require_dag_read()])
+@app.get("/api/score", dependencies=_require_dag_read(*NEEDS["score"]))
 def score(dag_id: str = Query(..., min_length=1, max_length=250)) -> dict[str, Any]:
     try:
         report = _score_by_id(dag_id)
@@ -360,7 +382,9 @@ def fleet_entry(
     }
 
 
-@app.get("/api/fleet")
+# Like Airflow's own DAG list: the sub-permissions are checked once for the page, and
+# get_authorized_dag_ids below narrows the list to the DAGs this user may read.
+@app.get("/api/fleet", dependencies=_require_dag_read(*NEEDS["fleet"], dag=False))
 def fleet(user: Annotated[Any, _user()]) -> dict[str, Any]:
     """Scores for every active DAG the current user may read."""
     from airflow.api_fastapi.app import get_auth_manager

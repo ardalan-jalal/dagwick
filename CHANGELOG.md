@@ -6,6 +6,52 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Dispute a check.** A failing or warning built-in check in the Dagwick tab
+  now links to a "Dispute a check" GitHub issue form, pre-filled with the
+  check id only (never the DAG id, file or code; the link sends no referrer).
+  `dagwick check` prints the same link to stderr when a check is flagged; JSON
+  output is unchanged. Checks from check packs get no link.
+
+### Changed
+
+- **Dagwick checks the same DAG permissions as Airflow.** Each endpoint now
+  also requires the DAG sub-permissions core Airflow asks for before showing
+  the same data:
+  - the score needs DAG Code and Task Instances;
+  - score history needs DAG Code and DAG Versions;
+  - run health needs DAG Runs and Task Instances;
+  - the fleet page needs all three.
+
+  Before, plain DAG read was enough, so under the FAB auth manager a role
+  without "DAG Code" could still see a DAG's ack comments and where its
+  secrets are. Check custom roles; the default SimpleAuthManager doesn't
+  separate these permissions, so nothing changes there. Found by
+  a source audit with Cloudflare's security-audit skill.
+- **Releases carry their build provenance as a file.** Next to the wheel, the
+  sdist and their Sigstore bundles, the GitHub release now includes
+  `dagwick-<version>.intoto.jsonl`, the same signed provenance GitHub stores
+  for `gh attestation verify`. OpenSSF Scorecard's Signed-Releases check looks
+  for it there.
+
+### Fixed
+
+- **Small hardening from a source security audit** (Cloudflare's
+  security-audit skill):
+  - **Ack reasons** are shown to everyone who can see a DAG's grade, so a
+    credential pasted into a `# dagwick: ack` comment is now hidden, and
+    reasons are capped at 200 characters.
+  - **Secret findings** no longer repeat a dict key that isn't a plain name,
+    since such a key could itself contain a credential.
+  - **The theme middleware** now changes only Airflow's own `/ui/config`
+    route (also under `[api] base_url`), not any path that ends the same way.
+  - **`dev/run.sh`** binds the sandbox to `127.0.0.1`. Every visitor is an
+    admin there, so it must not be reachable from the network.
+  - **`scripts/fleet_review.py`** no longer resends the token when the server
+    redirects, and refuses to send it over plain `http://` except to this
+    machine.
+
 ## [0.3.0] - 2026-11-10
 
 ### Added

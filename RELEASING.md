@@ -89,8 +89,9 @@ must be dated. The workflow stops if either is wrong.
   ```bash
   pip install "dagwick==0.2.0"
   ```
-- The GitHub release lists the wheel, the sdist and a `.sigstore.json` bundle
-  for each, and the files pass the checks in
+- The GitHub release lists the wheel, the sdist, a `.sigstore.json` bundle for
+  each and the build provenance (`dagwick-<version>.intoto.jsonl`), and the
+  files pass the checks in
   [Verify a release](#verify-a-release).
 
 ## Verify a release
@@ -103,6 +104,15 @@ The release workflow signs what it builds in two ways (from 0.3.0):
   ```bash
   pip download dagwick==0.3.0 --no-deps -d dagwick-download
   gh attestation verify dagwick-download/*.whl -R ardalan-jalal/dagwick
+  ```
+
+  From the release after 0.3.0, the same provenance is also attached to the
+  GitHub release as `dagwick-<version>.intoto.jsonl`, so it can be checked
+  offline:
+
+  ```bash
+  gh attestation verify dagwick-release/*.whl -R ardalan-jalal/dagwick \
+    --bundle dagwick-release/dagwick-*.intoto.jsonl
   ```
 
 - **Sigstore bundles** (`*.sigstore.json`) attached to the GitHub release, next

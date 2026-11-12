@@ -29,6 +29,19 @@ log = logging.getLogger(__name__)
 
 _NONE: Mapping[str, str] = MappingProxyType({})
 
+# An ack reason is shown to everyone who can see the DAG's grade.
+MAX_REASON = 200
+
+
+def _safe_reason(reason: str) -> str:
+    """Hide anything that looks like a credential pasted into the comment, and cap it."""
+    from dagwick.checks._secrets import PATTERNS, URI_PASSWORD
+
+    for _kind, pattern in PATTERNS:
+        reason = pattern.sub("[hidden]", reason)
+    reason = URI_PASSWORD.sub(lambda m: m.group(0)[: m.start(1) - m.start()] + "[hidden]@", reason)
+    return reason if len(reason) <= MAX_REASON else reason[: MAX_REASON - 1] + "…"
+
 
 @functools.lru_cache(maxsize=64)
 def acknowledgements(source: str) -> Mapping[str, str]:
@@ -41,7 +54,7 @@ def acknowledgements(source: str) -> Mapping[str, str]:
             match = _ACK.match(tok.string.strip())
             if not match:
                 continue
-            reason = (match["reason"] or "").strip()
+            reason = _safe_reason((match["reason"] or "").strip())
             for check_id in match["ids"].split(","):
                 seen = reasons.setdefault(check_id.strip().lower(), [])
                 if reason and reason not in seen:

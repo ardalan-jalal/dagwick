@@ -3,6 +3,8 @@ from __future__ import annotations
 import ast
 import re
 
+_PLAIN_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]{0,63}")
+
 SECRET_NAME_ENDINGS = (
     ("password",),
     ("passwd",),
@@ -94,7 +96,10 @@ def find_secrets(tree: ast.Module) -> list[tuple[int, str]]:
     def named(line: int, name: str | None, value: ast.AST | None) -> None:
         text = _str(value)
         if name and text is not None and is_secret_name(name) and not is_placeholder(text):
-            found.add((line, f'value assigned to "{name}"'))
+            # A dict key is any string, and could itself hold a credential: name it only
+            # when it looks like a plain identifier.
+            shown = f'"{name}"' if _PLAIN_NAME.fullmatch(name) else "a secret-named key"
+            found.add((line, f"value assigned to {shown}"))
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):

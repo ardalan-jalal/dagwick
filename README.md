@@ -167,6 +167,20 @@ airflow roles add-perms User -a can_read -r Plugins
 Users still only see the DAGs they may read. With another auth manager, give
 the same users read access to plugins in that manager.
 
+Dagwick also asks for the same DAG sub-permissions Airflow itself requires for
+the data behind each grade. A role without them gets "Forbidden" instead of
+that DAG's grade:
+
+| Page | Needs read on the DAG, plus |
+| --- | --- |
+| Score on the DAG tab | DAG Code, Task Instances |
+| Score history | DAG Code, DAG Versions |
+| Run health | DAG Runs, Task Instances |
+| Fleet page | DAG Code, DAG Runs, Task Instances |
+
+Airflow's built-in roles normally include these; check any custom roles.
+With the default SimpleAuthManager there is nothing to set.
+
 ## Verify a release
 
 From 0.3.0, every release is built and signed by the release workflow in this

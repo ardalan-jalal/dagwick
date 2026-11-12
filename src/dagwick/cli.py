@@ -18,6 +18,9 @@ ICON = {"fail": "x", "warn": "!"}
 
 OK, BELOW_GRADE, LOAD_ERROR = 0, 1, 2
 
+DISPUTE_URL = "https://github.com/ardalan-jalal/dagwick/issues/new?template=dispute.yml"
+DISPUTE_HINT = f"Disagree with a check or hit a false positive? Tell us: {DISPUTE_URL}"
+
 
 def _dagbag(path: Path) -> Any:
     try:
@@ -108,7 +111,18 @@ def render(
     print(summary, file=out)
 
 
-def main(argv: Sequence[str] | None = None, out: TextIO = sys.stdout) -> int:
+def flagged(reports: list[dict[str, Any]]) -> bool:
+    """Whether any built-in check failed or warned, so a dispute could make sense."""
+    return any(
+        c["status"] in ICON and c.get("pack", "dagwick") == "dagwick"
+        for r in reports
+        for c in r["checks"]
+    )
+
+
+def main(
+    argv: Sequence[str] | None = None, out: TextIO = sys.stdout, err: TextIO = sys.stderr
+) -> int:
     parser = argparse.ArgumentParser(prog="dagwick", description="Grade Airflow DAGs.")
     parser.add_argument("--version", action="version", version=f"dagwick {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -143,6 +157,8 @@ def main(argv: Sequence[str] | None = None, out: TextIO = sys.stdout) -> int:
         out.write("\n")
     else:
         render(reports, errors, args.min_grade, out)
+        if flagged(reports):
+            print(DISPUTE_HINT, file=err)
     if errors:
         return LOAD_ERROR
     if any(below(r["grade"], args.min_grade) for r in reports):

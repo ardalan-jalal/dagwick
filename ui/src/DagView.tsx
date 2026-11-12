@@ -3,6 +3,7 @@ import { type ReactNode, useMemo, useState } from "react";
 import { fetchScore, useLoad } from "./api";
 import { BRAND, VERSION } from "./brand";
 import { CodeBlock, Empty, Loading, Mascot, ScoreRing, brandEyebrow } from "./components";
+import { canDispute, disputeUrl } from "./dispute";
 import { RunHealth } from "./RunHealth";
 import { ScoreHistory } from "./ScoreHistory";
 import { SeasonEffects, SeasonGreeting } from "./SeasonEffects";
@@ -264,6 +265,17 @@ function CheckRow({ check, open, onToggle }: { check: CheckResult; open: boolean
               {check.fix}
               {check.example && <CodeBlock code={check.example} />}
             </div>
+            {canDispute(check) && (
+              <a
+                className="dagwick-dispute"
+                href={disputeUrl(check.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Opens a GitHub issue that names only this check, never your DAG"
+              >
+                Disagree with this check? Open a dispute on GitHub ↗
+              </a>
+            )}
           </div>
         )}
       </div>

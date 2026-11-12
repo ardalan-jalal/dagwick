@@ -192,3 +192,14 @@ def test_check_skips_without_usable_source(shining, source):
 def test_secrets_check_cannot_be_acknowledged(shining):
     source = f'# dagwick: ack hardcoded_secrets -- it is only dev\nPASSWORD = "{FAKE}"\n'
     assert check(shining, source)["status"] == "fail"
+
+
+def test_a_dict_key_that_is_not_a_plain_name_is_not_echoed():
+    # The key itself could hold a credential; the finding must not repeat it.
+    found = secrets(
+        f"""
+        conf = {{"postgres://u:hunter2@db/x?password": "{FAKE}"}}
+        """
+    )
+    assert (2, "value assigned to a secret-named key") in found
+    assert "hunter2" not in str(found)

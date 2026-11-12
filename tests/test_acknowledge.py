@@ -155,3 +155,20 @@ def test_text_that_crashes_tokenize_has_no_acknowledgements(source, dim):
     # UnicodeDecodeError for a bare "\r" before a non-ASCII character.
     assert acknowledgements(source) == {}
     assert score_dag(dim, Context(source=source))["score"] >= 0
+
+
+def test_a_credential_pasted_into_an_ack_reason_is_hidden():
+    acks = acknowledgements(
+        "x = 1  # dagwick: ack retries -- "
+        "see postgres://etl:hunter2@db/prod and AKIAABCDEFGHIJKLMNOP\n"
+    )
+    assert "hunter2" not in acks["retries"]
+    assert "AKIAABCDEFGHIJKLMNOP" not in acks["retries"]
+    assert "postgres://etl:[hidden]@db/prod" in acks["retries"]
+
+
+def test_a_long_ack_reason_is_cut_short():
+    from dagwick.acknowledge import MAX_REASON
+
+    acks = acknowledgements("x = 1  # dagwick: ack retries -- " + "why " * 200 + "\n")
+    assert len(acks["retries"]) == MAX_REASON and acks["retries"].endswith("…")

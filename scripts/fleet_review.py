@@ -20,6 +20,7 @@ import json
 import os
 import sys
 import time
+import urllib.parse
 import urllib.request
 from collections.abc import Callable, Iterable
 from typing import Any, TextIO
@@ -42,10 +43,22 @@ VERDICTS = "useful | false alarm | noise"
 Fetch = Callable[[str, dict[str, str]], bytes]
 
 
+def _is_local(url: str) -> bool:
+    host = urllib.parse.urlsplit(url).hostname or ""
+    return host in ("localhost", "127.0.0.1", "::1")
+
+
 def _fetch(url: str, headers: dict[str, str]) -> bytes:
     if not url.startswith(("https://", "http://")):
         raise ValueError("the Airflow URL must start with https:// or http://")
+    headers = dict(headers)
+    token = headers.pop("Authorization", None)
+    if token and url.startswith("http://") and not _is_local(url):
+        raise ValueError("refusing to send the token over plain http://; use https://")
     request = urllib.request.Request(url, headers=headers)
+    if token:
+        # Not resent if the server redirects, possibly to another host.
+        request.add_unredirected_header("Authorization", token)
     with urllib.request.urlopen(request, timeout=300) as response:  # noqa: S310 (scheme checked)
         return response.read()
 

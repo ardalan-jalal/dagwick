@@ -40,12 +40,22 @@ jobs:
       # Provenance: a signed statement that this workflow built these files from
       # this commit. Verify with: gh attestation verify <file> -R ardalan-jalal/dagwick
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        id: provenance
         with:
           subject-path: dist/*
       # Sigstore signatures for the GitHub release. They are made on a copy, because
       # PyPI only accepts the wheel and sdist in dist/.
       - name: Copy the release files to sign
         run: mkdir release-assets && cp dist/* release-assets/
+      # The provenance also goes on the GitHub release as a file, where OpenSSF
+      # Scorecard (Signed-Releases) looks for it: *.intoto.jsonl.
+      # Verify with: gh attestation verify <file> -R ardalan-jalal/dagwick --bundle <this file>
+      - name: Add the provenance to the release files
+        env:
+          BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+        run: |
+          test -s "$BUNDLE"
+          cp "$BUNDLE" "release-assets/dagwick-${GITHUB_REF_NAME#v}.intoto.jsonl"
       - uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
         with:
           inputs: ./release-assets/*.whl ./release-assets/*.tar.gz
@@ -63,8 +73,9 @@ jobs:
           skip-existing: true
 
   release-assets:
-    # Attach the wheel, sdist and their Sigstore bundles to the GitHub release
-    # (OpenSSF Scorecard: Signed-Releases). Only this job can write to the repo.
+    # Attach the wheel, sdist, their Sigstore bundles and the build provenance to the
+    # GitHub release (OpenSSF Scorecard: Signed-Releases). Only this job can write
+    # to the repo.
     needs: pypi
     runs-on: ubuntu-latest
     timeout-minutes: 5

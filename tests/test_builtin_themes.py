@@ -337,3 +337,19 @@ def test_new_festivals_name_their_calendar():
         "About 27 Oct – 31 Oct 2027 · Hindu calendar, moves each year"
     )
     assert "Chinese calendar" in themes.BY_ID["lantern-festival"].when(today)
+
+
+@pytest.mark.parametrize(
+    ("path", "root_path", "matches"),
+    [
+        ("/ui/config", "", True),
+        ("/airflow/ui/config", "/airflow", True),  # Airflow under [api] base_url
+        ("/plugins/other/ui/config", "", False),  # another app's route with the same ending
+        ("/ui/config/extra", "", False),
+        ("/ui/configs", "", False),
+    ],
+)
+def test_middleware_only_touches_airflows_own_ui_config_route(path, root_path, matches):
+    from dagwick.themes import _is_ui_config
+
+    assert _is_ui_config({"path": path, "root_path": root_path}) is matches

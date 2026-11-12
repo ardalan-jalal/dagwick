@@ -1,0 +1,47 @@
+name: Dispute a check
+description: A check flagged something you think is fine, or graded it too harshly.
+title: "[Dispute] Rule: "
+labels: ["dispute"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for pushing back on a rule. Disputes are how we keep false positives out of Dagwick.
+        **Please don't paste private code.** A short, made-up example that shows the same pattern is enough.
+  - type: input
+    id: rule
+    attributes:
+      label: Check id
+      description: Shown in the link you followed, or in `dagwick check --json` as `id`.
+      placeholder: catchup
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong?
+      options:
+        - False positive (the DAG does not have this problem)
+        - Too strict (the pattern is fine in my setup)
+        - Wrong weight (it matters less, or more, than the score says)
+        - The fix advice is wrong or unclear
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Minimal example
+      description: A small DAG snippet (anonymised or invented) that triggers the check.
+      render: python
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it should pass
+      description: What would a careful reviewer say about this code?
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: dagwick 0.3.0, Airflow 3.1.2

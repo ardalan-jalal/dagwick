@@ -359,6 +359,14 @@ def _uncached(send: Callable) -> Callable:
     return wrapped
 
 
+def _is_ui_config(scope: dict) -> bool:
+    """Airflow's own ``/ui/config`` route, also when Airflow runs under a base path."""
+    path, root = scope.get("path", ""), scope.get("root_path", "")
+    if root and path.startswith(root):
+        path = path[len(root) :]
+    return path == "/ui/config"
+
+
 class ThemeMiddleware:
     """Adds the viewer's seasonal theme to Airflow's ``GET /ui/config`` reply.
 
@@ -372,11 +380,7 @@ class ThemeMiddleware:
         self.today = today
 
     async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None:
-        if (
-            scope.get("type") != "http"
-            or scope.get("method") != "GET"
-            or not scope.get("path", "").endswith("/ui/config")
-        ):
+        if scope.get("type") != "http" or scope.get("method") != "GET" or not _is_ui_config(scope):
             await self.app(scope, receive, send)
             return
         headers = dict(scope.get("headers") or [])
