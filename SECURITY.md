@@ -5,7 +5,7 @@
 Please **do not open a public issue** for security problems. Report them
 privately with GitHub's form:
 
-**<https://github.com/ardalan-jalal/dagwick/security/advisories/new>**
+**<https://github.com/dagwick/dagwick/security/advisories/new>**
 
 (It is also on this repository's **Security** tab, under **Report a
 vulnerability**.) Only the maintainers can see the report.
@@ -21,7 +21,7 @@ What happens next:
 - The fix is announced in a **GitHub Security Advisory**, with a CVE when one
   applies, and in the release notes. We credit you unless you prefer not.
 
-Published advisories: <https://github.com/ardalan-jalal/dagwick/security/advisories>
+Published advisories: <https://github.com/dagwick/dagwick/security/advisories>
 
 ## Supported versions
 

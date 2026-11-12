@@ -16,6 +16,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- **The repository moved to the `dagwick` organization:**
+  <https://github.com/dagwick/dagwick>. Old links redirect. Releases up to
+  0.3.x still verify against `ardalan-jalal/dagwick`, where they were signed.
+
 - **Dagwick checks the same DAG permissions as Airflow.** Each endpoint now
   also requires the DAG sub-permissions core Airflow asks for before showing
   the same data:

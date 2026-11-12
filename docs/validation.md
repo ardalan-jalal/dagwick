@@ -1,6 +1,6 @@
 # Validating Dagwick on a real deployment
 
-A kit for [issue #33](https://github.com/ardalan-jalal/dagwick/issues/33): run
+A kit for [issue #33](https://github.com/dagwick/dagwick/issues/33): run
 Dagwick on a real (non-demo) Airflow 3 deployment, review the grades with DAG
 owners, report false alarms and propose weight changes.
 
@@ -53,7 +53,7 @@ Go through it with the owner (about 30 minutes each). For each row, fill in
 | Verdict | Meaning | What to do |
 | --- | --- | --- |
 | useful | Right, and worth fixing. | Nothing for Dagwick. |
-| false alarm | The check is wrong about this DAG. | Open a [false alarm issue](https://github.com/ardalan-jalal/dagwick/issues/new?template=false_alarm.yml). |
+| false alarm | The check is wrong about this DAG. | Open a [false alarm issue](https://github.com/dagwick/dagwick/issues/new?template=false_alarm.yml). |
 | noise | Right, but the owner broke the rule on purpose, or it doesn't matter here. | If the check can be acknowledged, suggest `# dagwick: ack <check> -- <reason>`. If it can't, or this happens on many DAGs, note it for a weight change. |
 
 Questions to ask each owner:

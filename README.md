@@ -1,10 +1,10 @@
 # Dagwick
 
-[![PyPI](https://img.shields.io/pypi/v/dagwick?color=a99aff)](https://pypi.org/project/dagwick/) ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab?logo=python&logoColor=white) [![CI](https://github.com/ardalan-jalal/dagwick/actions/workflows/ci.yml/badge.svg)](https://github.com/ardalan-jalal/dagwick/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-2f9e6e)](https://github.com/ardalan-jalal/dagwick/blob/main/LICENSE) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ardalan-jalal/dagwick/badge)](https://scorecard.dev/viewer/?uri=github.com/ardalan-jalal/dagwick) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16521/badge)](https://www.bestpractices.dev/projects/16521)
+[![PyPI](https://img.shields.io/pypi/v/dagwick?color=a99aff)](https://pypi.org/project/dagwick/) ![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776ab?logo=python&logoColor=white) [![CI](https://github.com/dagwick/dagwick/actions/workflows/ci.yml/badge.svg)](https://github.com/dagwick/dagwick/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-2f9e6e)](https://github.com/dagwick/dagwick/blob/main/LICENSE) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dagwick/dagwick/badge)](https://scorecard.dev/viewer/?uri=github.com/dagwick/dagwick) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16521/badge)](https://www.bestpractices.dev/projects/16521)
 
-![Dagwick: grade your Airflow DAGs from A to F, right inside the Airflow UI](https://raw.githubusercontent.com/ardalan-jalal/dagwick/main/docs/banner.png)
+![Dagwick: grade your Airflow DAGs from A to F, right inside the Airflow UI](https://raw.githubusercontent.com/dagwick/dagwick/main/docs/banner.png)
 
-![Dagwick in 15 seconds: a DAG's Dagwick tab with its score, run health and score history, then the fleet page filtered by a common issue](https://raw.githubusercontent.com/ardalan-jalal/dagwick/main/docs/demo.gif)
+![Dagwick in 15 seconds: a DAG's Dagwick tab with its score, run health and score history, then the fleet page filtered by a common issue](https://raw.githubusercontent.com/dagwick/dagwick/main/docs/demo.gif)
 
 ## Setup
 
@@ -25,14 +25,14 @@ Using Docker? Add `dagwick` to your Airflow image's `requirements.txt`.
 
 That's it. There is nothing to configure. If you want to, you can turn checks
 off, change their weights or move the grade thresholds in `airflow.cfg`
-([tune the scoring](https://github.com/ardalan-jalal/dagwick/blob/main/docs/checks.md#tune-the-scoring)).
+([tune the scoring](https://github.com/dagwick/dagwick/blob/main/docs/checks.md#tune-the-scoring)).
 
 ## What you get
 
 - **A score and a grade for every DAG.** 20 checks in 7 categories:
   reliability, observability, ownership, scheduling, structure, performance
   and security. Each check that doesn't pass tells you how to fix it. See
-  [what it checks](https://github.com/ardalan-jalal/dagwick/blob/main/docs/checks.md).
+  [what it checks](https://github.com/dagwick/dagwick/blob/main/docs/checks.md).
 - **Checks that read your DAG file without running it:** `Variable.get` at
   parse time, deprecated Airflow imports, hard-coded secrets (the value is
   never shown), and sensors that hold a worker slot while they wait.
@@ -45,21 +45,21 @@ off, change their weights or move the grade thresholds in `airflow.cfg`
   score, grade, failing and warning checks, runs and success rate over 30
   days). The file is built in your browser from what you are allowed to see.
   To put the same data in a dashboard, see
-  [Fleet data in a dashboard](https://github.com/ardalan-jalal/dagwick/blob/main/docs/dashboards.md).
+  [Fleet data in a dashboard](https://github.com/dagwick/dagwick/blob/main/docs/dashboards.md).
 - **`dagwick check` and a pre-commit hook** to grade DAG files before they are
   merged. See [Check DAGs before they are merged](#check-dags-before-they-are-merged).
 - **Break a check on purpose, with a reason.** Some DAGs need `catchup=True`
   or no retries. See [Acknowledge a check on purpose](#acknowledge-a-check-on-purpose).
 - **Your own rules as a check pack:** a separate package that adds checks
   through an entry point. See
-  [Write a check pack](https://github.com/ardalan-jalal/dagwick/blob/main/docs/checks.md#write-a-check-pack).
+  [Write a check pack](https://github.com/dagwick/dagwick/blob/main/docs/checks.md#write-a-check-pack).
 
 Wick, the little flame, dresses up for holidays like Newroz, Eid, Çarşema Sor,
-Diwali, Christmas and Halloween ([seasonal moods](https://github.com/ardalan-jalal/dagwick/blob/main/docs/moods.md)).
+Diwali, Christmas and Halloween ([seasonal moods](https://github.com/dagwick/dagwick/blob/main/docs/moods.md)).
 
-![The Dagwick tab on a DAG](https://raw.githubusercontent.com/ardalan-jalal/dagwick/main/docs/screenshots/dag-tab.png)
+![The Dagwick tab on a DAG](https://raw.githubusercontent.com/dagwick/dagwick/main/docs/screenshots/dag-tab.png)
 
-![The Dagwick fleet page](https://raw.githubusercontent.com/ardalan-jalal/dagwick/main/docs/screenshots/fleet.png)
+![The Dagwick fleet page](https://raw.githubusercontent.com/dagwick/dagwick/main/docs/screenshots/fleet.png)
 
 ## Acknowledge a check on purpose
 
@@ -131,7 +131,7 @@ to load.
 ### pre-commit
 
 ```yaml
-- repo: https://github.com/ardalan-jalal/dagwick
+- repo: https://github.com/dagwick/dagwick
   rev: v0.2.0
   hooks:
     - id: dagwick
@@ -191,9 +191,13 @@ pip download dagwick==0.3.0 --no-deps -d dagwick-download
 gh attestation verify dagwick-download/*.whl -R ardalan-jalal/dagwick
 ```
 
+Releases up to 0.3.x were signed before the repository moved to the
+`dagwick` organization, so they verify against `ardalan-jalal/dagwick` as
+above. Later releases verify with `-R dagwick/dagwick`.
+
 The GitHub release also carries a Sigstore bundle (`.sigstore.json`) for the
 wheel and the sdist. See
-[Releasing](https://github.com/ardalan-jalal/dagwick/blob/main/RELEASING.md#verify-a-release)
+[Releasing](https://github.com/dagwick/dagwick/blob/main/RELEASING.md#verify-a-release)
 for how to check those.
 
 ## Remove
@@ -206,9 +210,9 @@ Then restart the api-server.
 
 ## More
 
-- [Seasonal moods, and how to turn them off](https://github.com/ardalan-jalal/dagwick/blob/main/docs/moods.md)
-- [Seasonal themes for all of Airflow, config only](https://github.com/ardalan-jalal/dagwick/blob/main/themes/README.md)
-- [What it checks, and how to add your own checks](https://github.com/ardalan-jalal/dagwick/blob/main/docs/checks.md)
-- [Roadmap](https://github.com/ardalan-jalal/dagwick/blob/main/ROADMAP.md)
-- [Security](https://github.com/ardalan-jalal/dagwick/blob/main/SECURITY.md) · [Contributing](https://github.com/ardalan-jalal/dagwick/blob/main/CONTRIBUTING.md) · [Changelog](https://github.com/ardalan-jalal/dagwick/blob/main/CHANGELOG.md) · [Releasing](https://github.com/ardalan-jalal/dagwick/blob/main/RELEASING.md)
-- License: [MIT](https://github.com/ardalan-jalal/dagwick/blob/main/LICENSE)
+- [Seasonal moods, and how to turn them off](https://github.com/dagwick/dagwick/blob/main/docs/moods.md)
+- [Seasonal themes for all of Airflow, config only](https://github.com/dagwick/dagwick/blob/main/themes/README.md)
+- [What it checks, and how to add your own checks](https://github.com/dagwick/dagwick/blob/main/docs/checks.md)
+- [Roadmap](https://github.com/dagwick/dagwick/blob/main/ROADMAP.md)
+- [Security](https://github.com/dagwick/dagwick/blob/main/SECURITY.md) · [Contributing](https://github.com/dagwick/dagwick/blob/main/CONTRIBUTING.md) · [Changelog](https://github.com/dagwick/dagwick/blob/main/CHANGELOG.md) · [Releasing](https://github.com/dagwick/dagwick/blob/main/RELEASING.md)
+- License: [MIT](https://github.com/dagwick/dagwick/blob/main/LICENSE)
