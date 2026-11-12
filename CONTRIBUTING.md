@@ -2,6 +2,9 @@
 
 Thanks for helping. A few rules keep Dagwick safe to install anywhere.
 
+Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md). How
+decisions are made and who maintains Dagwick is in [GOVERNANCE.md](GOVERNANCE.md).
+
 ## Development setup
 
 You need [uv](https://docs.astral.sh/uv/) and Node.js 20+.
