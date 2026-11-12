@@ -210,5 +210,7 @@ Then restart the api-server.
 - [Seasonal themes for all of Airflow, config only](https://github.com/ardalan-jalal/dagwick/blob/main/themes/README.md)
 - [What it checks, and how to add your own checks](https://github.com/ardalan-jalal/dagwick/blob/main/docs/checks.md)
 - [Roadmap](https://github.com/ardalan-jalal/dagwick/blob/main/ROADMAP.md)
+- [Architecture](https://github.com/dagwick/dagwick/blob/main/docs/architecture.md) · [Security assurance case](https://github.com/dagwick/dagwick/blob/main/docs/assurance-case.md)
+- [Governance](https://github.com/dagwick/dagwick/blob/main/GOVERNANCE.md) · [Code of Conduct](https://github.com/dagwick/dagwick/blob/main/CODE_OF_CONDUCT.md)
 - [Security](https://github.com/ardalan-jalal/dagwick/blob/main/SECURITY.md) · [Contributing](https://github.com/ardalan-jalal/dagwick/blob/main/CONTRIBUTING.md) · [Changelog](https://github.com/ardalan-jalal/dagwick/blob/main/CHANGELOG.md) · [Releasing](https://github.com/ardalan-jalal/dagwick/blob/main/RELEASING.md)
 - License: [MIT](https://github.com/ardalan-jalal/dagwick/blob/main/LICENSE)

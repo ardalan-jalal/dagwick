@@ -49,8 +49,13 @@ surface beyond what Airflow already exposes:
   from user input.
 - **No third-party code in the browser.** The UI bundle uses the React that
   Airflow already provides. It loads nothing from a CDN, uses no
-  `innerHTML`, and stores nothing in `localStorage`.
+  `innerHTML`. The only thing it keeps in `localStorage` is one per-viewer,
+  non-sensitive switch: whether seasonal moods are hidden.
 - **No runtime dependencies.** The package declares no dependencies of its own.
 - **Signed releases.** Releases are published from GitHub Actions with PyPI
   Trusted Publishing (no stored token), with a build provenance attestation
   and Sigstore signatures. See "Verify a release" in `RELEASING.md`.
+
+The threat model, trust boundaries and the reasoning behind this design are in
+the [security assurance case](docs/assurance-case.md); how the parts fit
+together is in [docs/architecture.md](docs/architecture.md).

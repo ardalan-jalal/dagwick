@@ -1,63 +1,70 @@
 # Roadmap
 
-Where Dagwick is heading. Priorities can change; ideas and feedback are welcome
-in [issues](https://github.com/ardalan-jalal/dagwick/issues).
+What Dagwick plans to do, and not do, from **November 2026 to November 2027**.
+Priorities can change; ideas and feedback are welcome in
+[issues](https://github.com/dagwick/dagwick/issues) and
+[discussions](https://github.com/dagwick/dagwick/discussions). The maintainers
+review this page at least every three months (see [GOVERNANCE.md](GOVERNANCE.md)).
 
-## 1. Prove it on real DAGs (0.1.x)
+## Next 12 months
+
+### Trust the grades (late 2026 – early 2027)
 
 - [ ] **Validate on real Airflow deployments.** Review grades with DAG owners,
-      fix false alarms, and tune the weights.
-- [x] **Acknowledge a check on purpose** (0.2.0). A `# dagwick: ack <check> -- <reason>`
-      comment marks a check a DAG breaks on purpose (for example `catchup=True`
-      for a backfill DAG). Only checks where that can be legitimate allow it.
-- [ ] **Optional settings without code.** A `[dagwick]` section in
-      `airflow.cfg` to turn checks off, change weights and set grade thresholds.
-      Still read-only, still no secrets.
-- [x] **Test against several Airflow versions** (3.1, 3.2, 3.3) in CI.
+      fix false alarms and tune the weights (the [validation kit](docs/validation.md)).
+- [ ] **Act on disputes.** Every
+      [Dispute a check](https://github.com/dagwick/dagwick/issues/new?template=dispute.yml)
+      report gets an answer, and the rules or weights change when it is right.
+- [ ] **Publish the reasoning behind each check** in [docs/checks.md](docs/checks.md),
+      so teams can see why a rule exists before they argue with it.
 
-## 2. Make it more useful (0.2.0)
+### Make it part of the workflow (2027)
 
-- [x] **`dagwick check dags/` command and pre-commit hook.** Grade DAGs before
-      they are merged, and fail a pull request when a DAG scores below a chosen
-      grade.
-- [x] **Score history.** Airflow 3 keeps every DAG version, so Dagwick can score
-      past versions and show a trend, without storing anything itself.
-- [x] **Real-world health next to code quality.** Recent success rate, retry
-      frequency and duration trends, read from the runs Airflow already records.
-- [x] **More checks:**
-  - [x] `Variable.get` at the top level of a DAG file (slows every parse)
-  - [x] sensors that hold a worker slot instead of using `reschedule` mode or a
-        deferrable operator
-  - [x] deprecated operators (any import path Airflow marks as deprecated)
-  - [x] hard-coded secrets in DAG code
-  - [x] slow DAG parse times
-- [x] **Seasonal moods, experimental and off by default**: Newroz, Eid, Kurdish Language Day, Christmas,
-      New Year, Halloween, Ramadan and Dagwick's birthday.
+- [ ] **1.0**, once the check interface is stable, so check-pack authors can
+      rely on it.
+- [ ] **Scores as metrics** for dashboards, next to the existing CSV download.
+- [ ] **More built-in themes:** Newroz, Kurdish Language Day, Eid, Ramadan and
+      New Year (now "Coming soon" on the Themes page).
+- [ ] **Translations of the UI**, starting with Kurdish.
 
-## 3. Grow it (0.3+)
+### Project health (ongoing)
 
-- [x] **Make seasonal moods production-ready** and turn them on by default,
-      with three new moods: Çarşema Sor, Diwali and the Lantern Festival.
-- [x] **Airflow-wide seasonal themes** (config only, `themes/`): realistic snow,
-      Halloween, Newroz and Kurdish Language Day.
-- [ ] **Airflow-wide seasonal themes**, built into Dagwick: they switch on by
-      date with no Airflow configuration, and each viewer can turn them off or
-      preview them on Dagwick's Themes page. Christmas snow first, then Halloween,
-      Newroz and Kurdish Language Day.
-- [ ] **More moods:** the Lantern Festival, Diwali, Yazidi New Year
-      (Çarşema Sor).
-- [ ] **Check packs.** Team- or company-specific rules shipped as separate
-      packages through the existing `dagwick.checks` entry point, so Dagwick
-      itself stays generic.
-- [ ] **Exports.** Download the fleet as CSV, or expose scores as metrics for
-      dashboards.
-- [ ] **Fleet views by owner and tag**, so each team sees its own DAGs.
+- [ ] OpenSSF Best Practices **silver** badge.
+- [ ] Keep CI green on every supported Airflow 3 minor version as new ones come
+      out.
 
-## Project health (ongoing)
+## What Dagwick will not do
 
-- [x] Signed releases to PyPI with Trusted Publishing
-- [x] Dependabot for Python, npm and GitHub Actions
-- [ ] CodeQL scanning and an OpenSSF Scorecard badge
-- [x] A short demo GIF in the README
-- [ ] **1.0** once the check interface is stable, so check-pack authors can rely
-      on it
+These follow from the rules in [GOVERNANCE.md](GOVERNANCE.md#non-negotiables)
+and will not change in the next year:
+
+- **No writing to Airflow.** Dagwick will not change DAGs, pause them, open
+  pull requests or store data in Airflow's database.
+- **No runtime dependencies** and **no network calls** (no telemetry, no
+  remote rules, no AI service).
+- **No running DAG code inside Airflow.** Only the optional `dagwick check`
+  command imports DAG files, on the user's own machine or CI.
+- **No Airflow 2 support.** Dagwick needs Airflow 3.1 or later.
+- **No standalone server or SaaS.** Dagwick is a plugin inside Airflow.
+- **No company-specific rules in Dagwick itself.** Those belong in
+  [check packs](docs/checks.md#write-a-check-pack).
+
+## Done
+
+- [x] Grades A–F on a DAG tab and a fleet page (0.1.0)
+- [x] Test against several Airflow versions in CI (0.1.0)
+- [x] Acknowledge a check on purpose (0.2.0)
+- [x] `dagwick check` command and pre-commit hook (0.2.0)
+- [x] Score history and real-world run health (0.2.0)
+- [x] Checks for `Variable.get` at parse time, sensors holding worker slots,
+      deprecated imports, hard-coded secrets and slow parsing (0.2.0)
+- [x] Optional `[dagwick]` settings: turn checks off, change weights and grade
+      thresholds (0.3.0)
+- [x] Check packs through the `dagwick.checks` entry point (0.3.0)
+- [x] Fleet CSV download (0.3.0) and fleet filters by owner and tag
+- [x] Seasonal moods, on by default (0.3.0)
+- [x] Airflow-wide seasonal themes: config-only files, and built in for
+      Christmas and Halloween (0.3.0)
+- [x] Signed releases to PyPI with Trusted Publishing, Dependabot, CodeQL,
+      fuzzing and an OpenSSF Scorecard badge
+- [x] OpenSSF Best Practices passing badge
